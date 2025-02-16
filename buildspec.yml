@@ -1,0 +1,38 @@
+version: 0.2.0
+
+phases:
+  install:
+    commands:
+      - echo "Installing dependencies..."
+      - pip install -r requirements.txt
+  pre_build:
+    commands:
+      - echo "Logging in to Docker Hub..."
+      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  build:
+    commands:
+      - echo "Building Docker image..."
+      - docker build -t sjweb .
+  post_build:
+    commands:
+      - echo "Tagging Docker image..."
+      - docker tag sjweb:latest $DOCKER_USERNAME/sjweb:latest
+      - echo "Pushing Docker image to Docker Hub..."
+      - docker push $DOCKER_USERNAME/sjweb:latest
+
+artifacts:
+  files:
+    - '**/*'
+  name: $(date +%Y-%m-%d)
+
+environment:
+  variables:
+    DOCKER_USERNAME: 'sanku7668'
+    DOCKER_PASSWORD: '${DOCKER_PASSWORD}'
+    DOCKER_REPOSITORY: 'sjweb'
+
+secrets-manager:
+  - arn:aws:secretsmanager:ap-south-1:123456789012:secret:dockerpassword
+
+decrypt:
+  - DOCKER_PASSWORD
